@@ -10,7 +10,7 @@
     supportedSystems = ["x86_64-linux" "x86_64-darwin" "aarch64-darwin"];
     forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
     nixpkgsFor = forAllSystems (system: import nixpkgs {inherit system;});
-  in {
+  in rec {
     packages = forAllSystems (system: let
       pkgs = nixpkgsFor.${system};
     in {
@@ -18,5 +18,14 @@
     });
 
     defaultPackage = forAllSystems (system: self.packages.${system}.sourcegraph-app);
+
+    apps = forAllSystems (system: rec {
+      sourcegraph-app = {
+        type = "app";
+        program = "${packages.${system}.sourcegraph-app}/bin/sourcegraph";
+      };
+
+      default = sourcegraph-app;
+    });
   };
 }
